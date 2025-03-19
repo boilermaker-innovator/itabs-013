@@ -1050,4 +1050,1056 @@ function updateStats() {
 }
 <\/script>`;
 
+<br>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>👍i Mobile Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .demo-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .demo-subtitle {
+            font-size: 16px;
+            color: #666;
+        }
+
+        /* 👍i Widget Styles */
+        #thumbs-widget {
+            position: relative;
+            z-index: 1000;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        #thumbs-button {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+            transition: transform 0.2s;
+        }
+        
+        #thumbs-button:active {
+            transform: scale(0.95);
+        }
+
+        #i-indicator {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 32px;
+            height: 32px;
+            background: #4361ee;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-style: italic;
+            font-weight: bold;
+        }
+
+        .thumbs-popup {
+            position: absolute;
+            left: 0;
+            right: 0;
+            margin: 20px auto;
+            background: white;
+            width: 100%;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .popup-title {
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: #333;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .reaction-option {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reaction-option:active {
+            background: #e9ecef;
+        }
+
+        .emoji {
+            font-size: 30px;
+            margin-right: 15px;
+        }
+
+        .thumbs-close-button {
+            color: #4361ee;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 18px;
+            padding: 10px;
+            font-weight: 600;
+        }
+
+        .stats-item {
+            margin: 20px 0;
+            font-size: 16px;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: #e9ecef;
+            border-radius: 6px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: #4361ee;
+            width: 0%;
+            transition: width 0.5s ease-out;
+        }
+        
+        .stats-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .stats-code-button {
+            background: #4361ee;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
+            margin-right: 10px;
+        }
+        
+        /* Code Popup */
+        #code-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .popup-content {
+            background: white;
+            width: 90%;
+            max-width: 90%;
+            height: 90%;
+            max-height: 90%;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .popup-title {
+            font-weight: bold;
+            font-size: 18px;
+            text-align: left;
+            margin-bottom: 0;
+        }
+        
+        .close-button {
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+        
+        .popup-tabs {
+            display: flex;
+            background: #f0f2f5;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .popup-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+        }
+        
+        .popup-tab.active {
+            background: white;
+            color: #4361ee;
+            border-bottom: 3px solid #4361ee;
+        }
+        
+        .tab-content {
+            display: none;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        #code-tab {
+            height: 100%;
+        }
+        
+        #code-content {
+            width: 100%;
+            height: 100%;
+            border: none;
+            resize: none;
+            padding: 20px;
+            font-family: monospace;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        #customize-content {
+            padding: 20px;
+        }
+        
+        .customize-section {
+            margin-bottom: 25px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .customize-section h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .emoji-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .emoji-input input[type="text"] {
+            width: 60px;
+            font-size: 20px;
+            text-align: center;
+        }
+        
+        .emoji-input .reaction-text {
+            flex-grow: 1;
+        }
+        
+        .popup-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .footer-buttons {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+        
+        .update-button {
+            background: #34a853;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .copy-button {
+            background: #4361ee;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .success-message {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-right: 15px;
+            font-weight: 600;
+        }
+        
+        /* Instructions */
+        .instructions {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 400px;
+        }
+        
+        .instructions h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .step {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            background: #4361ee;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            z-index: 3000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <h1 class="demo-title">👍i Interactive Demo</h1>
+        <p class="demo-subtitle">Tap the button below to try it out</p>
+    </div>
+    
+    <!-- 👍i Widget Implementation -->
+    <div id="thumbs-widget">
+        <div id="thumbs-button" onclick="toggleThumbs()">
+            👍
+            <div id="i-indicator">i</div>
+        </div>
+        
+        <div id="reactions-popup" class="thumbs-popup">
+            <div class="popup-title">What do you think?</div>
+            
+            <div class="reaction-option" onclick="saveReaction('helpful')">
+                <span class="emoji">👍</span> This is helpful
+            </div>
+            
+            <div class="reaction-option" onclick="saveReaction('love')">
+                <span class="emoji">❤️</span> I love this
+            </div>
+            
+            <div class="reaction-option" onclick="saveReaction('amazing')">
+                <span class="emoji">🔥</span> This is amazing
+            </div>
+            
+            <div class="reaction-option" onclick="saveReaction('informative')">
+                <span class="emoji">💡</span> Very informative
+            </div>
+            
+            <div class="thumbs-close-button" onclick="closeThumbsPopups()">
+                Close
+            </div>
+        </div>
+        
+        <div id="stats-popup" class="thumbs-popup">
+            <div class="popup-title">Reaction Statistics</div>
+            <div id="stats-content">
+                <p>No reactions yet</p>
+            </div>
+            <div class="stats-buttons">
+                <button class="stats-code-button" onclick="openCodePopup()">Get Code</button>
+                <div class="thumbs-close-button" onclick="closeThumbsPopups()">Close</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <h2>How it works</h2>
+        <div class="step">
+            <span class="step-number">1</span>
+            Tap the 👍i button to open reaction options
+        </div>
+        <div class="step">
+            <span class="step-number">2</span>
+            Choose a reaction to register your feedback
+        </div>
+        <div class="step">
+            <span class="step-number">3</span>
+            View statistics and get the code to use on your site
+        </div>
+    </div>
+    
+    <!-- Code Popup -->
+    <div id="code-popup">
+        <div class="popup-content">
+            <div class="popup-header">
+                <div class="popup-title">👍i Widget Code</div>
+                <div class="close-button" onclick="closeCodePopup()">&times;</div>
+            </div>
+            
+            <div class="popup-tabs">
+                <button class="popup-tab active" onclick="switchTab('code')">Code</button>
+                <button class="popup-tab" onclick="switchTab('customize')">Customize</button>
+            </div>
+            
+            <div id="code-tab" class="tab-content active">
+                <textarea id="code-content" readonly></textarea>
+            </div>
+            
+            <div id="customize-tab" class="tab-content">
+                <div id="customize-content">
+                    <div class="customize-section">
+                        <h3>Reactions</h3>
+                        <div class="form-group emoji-input">
+                            <input type="text" id="emoji1" value="👍" maxlength="2">
+                            <input type="text" id="reaction1" class="reaction-text" value="This is helpful">
+                        </div>
+                        <div class="form-group emoji-input">
+                            <input type="text" id="emoji2" value="❤️" maxlength="2">
+                            <input type="text" id="reaction2" class="reaction-text" value="I love this">
+                        </div>
+                        <div class="form-group emoji-input">
+                            <input type="text" id="emoji3" value="🔥" maxlength="2">
+                            <input type="text" id="reaction3" class="reaction-text" value="This is amazing">
+                        </div>
+                        <div class="form-group emoji-input">
+                            <input type="text" id="emoji4" value="💡" maxlength="2">
+                            <input type="text" id="reaction4" class="reaction-text" value="Very informative">
+                        </div>
+                    </div>
+                    
+                    <div class="customize-section">
+                        <h3>Appearance</h3>
+                        <div class="form-group">
+                            <label for="primary-color">Primary Color</label>
+                            <input type="color" id="primary-color" value="#4361ee">
+                        </div>
+                        <div class="form-group">
+                            <label for="button-position">Position</label>
+                            <select id="button-position">
+                                <option value="bottom-right">Bottom Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                                <option value="top-right">Top Right</option>
+                                <option value="top-left">Top Left</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="customize-section">
+                        <h3>Text</h3>
+                        <div class="form-group">
+                            <label for="popup-heading">Reactions Popup Heading</label>
+                            <input type="text" id="popup-heading" value="What do you think?">
+                        </div>
+                        <div class="form-group">
+                            <label for="stats-heading">Stats Popup Heading</label>
+                            <input type="text" id="stats-heading" value="Reaction Statistics">
+                        </div>
+                        <div class="form-group">
+                            <label for="button-text">Main Button Emoji</label>
+                            <input type="text" id="button-text" value="👍" maxlength="2" style="font-size: 20px; text-align: center;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="popup-footer">
+                <span id="success-message" class="success-message">Code copied!</span>
+                <div class="footer-buttons">
+                    <button id="update-button" class="update-button" onclick="updateCustomizations()">Update Code</button>
+                    <button class="copy-button" onclick="copyCode()">Copy Code</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+    // Add this script tag to the end of the HTML body
+<script>
+    // 👍i Widget Functionality
+    var reactions = {
+        helpful: 0,
+        love: 0,
+        amazing: 0,
+        informative: 0
+    };
+
+    // Try to load saved data
+    try {
+        var savedReactions = localStorage.getItem('thumbs-widget-reactions');
+        if (savedReactions) {
+            reactions = JSON.parse(savedReactions);
+        }
+    } catch(e) {
+        console.log('Could not load saved reactions');
+    }
+
+    // Toggle reactions popup
+    function toggleThumbs() {
+        closeThumbsPopups();
+        document.getElementById('reactions-popup').style.display = 'block';
+    }
+
+    // Save reaction and show stats
+    function saveReaction(type) {
+        // Increment the selected reaction type
+        reactions[type]++;
+        
+        // Save to localStorage
+        try {
+            localStorage.setItem('thumbs-widget-reactions', JSON.stringify(reactions));
+        } catch(e) {
+            console.log('Could not save reaction');
+        }
+        
+        showToast("Thank you for your feedback!");
+        closeThumbsPopups();
+        updateStats();
+        document.getElementById('stats-popup').style.display = 'block';
+    }
+
+    // Close all popups
+    function closeThumbsPopups() {
+        document.getElementById('reactions-popup').style.display = 'none';
+        document.getElementById('stats-popup').style.display = 'none';
+    }
+
+    // Update statistics display
+    function updateStats() {
+        var total = reactions.helpful + reactions.love + reactions.amazing + reactions.informative;
+        var statsContent = document.getElementById('stats-content');
+        
+        if (total === 0) {
+            statsContent.innerHTML = '<p>No reactions yet</p>';
+            return;
+        }
+        
+        var helpfulPercent = Math.round((reactions.helpful / total) * 100) || 0;
+        var lovePercent = Math.round((reactions.love / total) * 100) || 0;
+        var amazingPercent = Math.round((reactions.amazing / total) * 100) || 0;
+        var informativePercent = Math.round((reactions.informative / total) * 100) || 0;
+        
+        var html = '<p><strong>Total reactions:</strong> ' + total + '</p>';
+        
+        html += '<div class="stats-item">';
+        html += '<div>👍 This is helpful: ' + reactions.helpful + ' (' + helpfulPercent + '%)</div>';
+        html += '<div class="progress-bar"><div class="progress" style="width:' + helpfulPercent + '%"></div></div>';
+        html += '</div>';
+        
+        html += '<div class="stats-item">';
+        html += '<div>❤️ I love this: ' + reactions.love + ' (' + lovePercent + '%)</div>';
+        html += '<div class="progress-bar"><div class="progress" style="width:' + lovePercent + '%"></div></div>';
+        html += '</div>';
+        
+        html += '<div class="stats-item">';
+        html += '<div>🔥 This is amazing: ' + reactions.amazing + ' (' + amazingPercent + '%)</div>';
+        html += '<div class="progress-bar"><div class="progress" style="width:' + amazingPercent + '%"></div></div>';
+        html += '</div>';
+        
+        html += '<div class="stats-item">';
+        html += '<div>💡 Very informative: ' + reactions.informative + ' (' + informativePercent + '%)</div>';
+        html += '<div class="progress-bar"><div class="progress" style="width:' + informativePercent + '%"></div></div>';
+        html += '</div>';
+        
+        statsContent.innerHTML = html;
+        
+        // Animate progress bars
+        setTimeout(function() {
+            var bars = document.querySelectorAll('.progress');
+            bars.forEach(function(bar) {
+                var width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(function() {
+                    bar.style.width = width;
+                }, 50);
+            });
+        }, 50);
+    }
+
+    // Display toast message
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.display = 'block';
+        
+        setTimeout(function() {
+            toast.style.display = 'none';
+        }, 2000);
+    }
+
+    // Open code popup
+    function openCodePopup() {
+        document.getElementById('code-popup').style.display = 'flex';
+        generateCode();
+    }
+    
+    // Close code popup
+    function closeCodePopup() {
+        document.getElementById('code-popup').style.display = 'none';
+    }
+    
+    // Switch between code and customize tabs
+    function switchTab(tabName) {
+        const tabs = document.querySelectorAll('.popup-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => tab.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        document.querySelector(`.popup-tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+    }
+    
+    // Update code based on customizations
+    function updateCustomizations() {
+        generateCode();
+        showToast("Code updated with your customizations!");
+        switchTab('code');
+    }
+    
+    // Copy code to clipboard
+    function copyCode() {
+        const codeContent = document.getElementById('code-content');
+        codeContent.select();
+        document.execCommand('copy');
+        
+        const successMessage = document.getElementById('success-message');
+        successMessage.style.display = 'inline-block';
+        
+        setTimeout(function() {
+            successMessage.style.display = 'none';
+        }, 2000);
+    }
+    
+    // Generate customized code
+    function generateCode() {
+        // Get customization values
+        const emoji1 = document.getElementById('emoji1').value || '👍';
+        const emoji2 = document.getElementById('emoji2').value || '❤️';
+        const emoji3 = document.getElementById('emoji3').value || '🔥';
+        const emoji4 = document.getElementById('emoji4').value || '💡';
+        
+        const reaction1 = document.getElementById('reaction1').value || 'This is helpful';
+        const reaction2 = document.getElementById('reaction2').value || 'I love this';
+        const reaction3 = document.getElementById('reaction3').value || 'This is amazing';
+        const reaction4 = document.getElementById('reaction4').value || 'Very informative';
+        
+        const primaryColor = document.getElementById('primary-color').value || '#4361ee';
+        const position = document.getElementById('button-position').value || 'bottom-right';
+        
+        const popupHeading = document.getElementById('popup-heading').value || 'What do you think?';
+        const statsHeading = document.getElementById('stats-heading').value || 'Reaction Statistics';
+        const buttonText = document.getElementById('button-text').value || '👍';
+        
+        // Generate position CSS
+        let positionCSS = 'bottom: 20px; right: 20px;';
+        if (position === 'bottom-left') positionCSS = 'bottom: 20px; left: 20px;';
+        if (position === 'top-right') positionCSS = 'top: 20px; right: 20px;';
+        if (position === 'top-left') positionCSS = 'top: 20px; left: 20px;';
+        
+        // Generate code with customizations
+        const customCode = `<!-- 👍i Widget with Reactions and Stats -->
+<style>
+#thumbs-widget {
+    position: fixed;
+    ${positionCSS}
+    z-index: 9999;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#thumbs-button {
+    width: 70px;
+    height: 70px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    cursor: pointer;
+    position: relative;
+}
+
+#i-indicator {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    background: ${primaryColor};
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-style: italic;
+    font-weight: bold;
+}
+
+.thumbs-popup {
+    position: absolute;
+    ${position.includes('top') ? 'top: 80px;' : 'bottom: 80px;'}
+    ${position.includes('left') ? 'left: 0;' : 'right: 0;'}
+    background: white;
+    width: 320px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+    display: none;
+}
+
+.popup-title {
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 18px;
+}
+
+.reaction-option {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    background: #f8f9fa;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.reaction-option:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
+}
+
+.emoji {
+    font-size: 28px;
+    margin-right: 15px;
+}
+
+.thumbs-close-button {
+    color: ${primaryColor};
+    text-align: center;
+    cursor: pointer;
+    margin-top: 15px;
+    font-size: 16px;
+}
+
+.stats-item {
+    margin: 15px 0;
+    font-size: 16px;
+}
+
+.progress-bar {
+    height: 10px;
+    background: #e9ecef;
+    border-radius: 5px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background: ${primaryColor};
+    width: 0%;
+    transition: width 0.5s ease-out;
+}
+
+.stats-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.stats-code-button {
+    background: ${primaryColor};
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Mobile Optimization */
+@media (max-width: 480px) {
+    .thumbs-popup {
+        width: 280px;
+    }
+    
+    .reaction-option {
+        padding: 10px 14px;
+    }
+    
+    .emoji {
+        font-size: 24px;
+    }
+}
+</style>
+
+<div id="thumbs-widget">
+    <div id="thumbs-button" onclick="toggleThumbs()">
+        ${buttonText}
+        <div id="i-indicator">i</div>
+    </div>
+    
+    <div id="reactions-popup" class="thumbs-popup">
+        <div class="popup-title">${popupHeading}</div>
+        
+        <div class="reaction-option" onclick="saveReaction('reaction1')">
+            <span class="emoji">${emoji1}</span> ${reaction1}
+        </div>
+        
+        <div class="reaction-option" onclick="saveReaction('reaction2')">
+            <span class="emoji">${emoji2}</span> ${reaction2}
+        </div>
+        
+        <div class="reaction-option" onclick="saveReaction('reaction3')">
+            <span class="emoji">${emoji3}</span> ${reaction3}
+        </div>
+        
+        <div class="reaction-option" onclick="saveReaction('reaction4')">
+            <span class="emoji">${emoji4}</span> ${reaction4}
+        </div>
+        
+        <div class="thumbs-close-button" onclick="closeThumbsPopups()">
+            Close
+        </div>
+    </div>
+    
+    <div id="stats-popup" class="thumbs-popup">
+        <div class="popup-title">${statsHeading}</div>
+        <div id="stats-content">
+            <p>No reactions yet</p>
+        </div>
+        <div class="stats-buttons">
+            <button class="stats-code-button" onclick="openCodePopup()">Get Code</button>
+            <div class="thumbs-close-button" onclick="closeThumbsPopups()">Close</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Widget data
+var reactions = {
+    reaction1: 0,
+    reaction2: 0,
+    reaction3: 0,
+    reaction4: 0
+};
+
+// Reaction labels for display
+var reactionLabels = {
+    reaction1: "${emoji1} ${reaction1}",
+    reaction2: "${emoji2} ${reaction2}",
+    reaction3: "${emoji3} ${reaction3}",
+    reaction4: "${emoji4} ${reaction4}"
+};
+
+// Try to load saved data
+try {
+    var savedReactions = localStorage.getItem('thumbs-widget-reactions');
+    if (savedReactions) {
+        reactions = JSON.parse(savedReactions);
+    }
+} catch(e) {
+    console.log('Could not load saved reactions');
+}
+
+// Toggle reactions popup
+function toggleThumbs() {
+    closeThumbsPopups();
+    document.getElementById('reactions-popup').style.display = 'block';
+}
+
+// Save reaction and show stats
+function saveReaction(type) {
+    // Increment the selected reaction type
+    reactions[type]++;
+    
+    // Save to localStorage
+    try {
+        localStorage.setItem('thumbs-widget-reactions', JSON.stringify(reactions));
+    } catch(e) {
+        console.log('Could not save reaction');
+    }
+    
+    closeThumbsPopups();
+    updateStats();
+    document.getElementById('stats-popup').style.display = 'block';
+}
+
+// Close all popups
+function closeThumbsPopups() {
+    document.getElementById('reactions-popup').style.display = 'none';
+    document.getElementById('stats-popup').style.display = 'none';
+}
+
+// Update statistics display
+function updateStats() {
+    var total = reactions.reaction1 + reactions.reaction2 + reactions.reaction3 + reactions.reaction4;
+    var statsContent = document.getElementById('stats-content');
+    
+    if (total === 0) {
+        statsContent.innerHTML = '<p>No reactions yet</p>';
+        return;
+    }
+    
+    var reaction1Percent = Math.round((reactions.reaction1 / total) * 100) || 0;
+    var reaction2Percent = Math.round((reactions.reaction2 / total) * 100) || 0;
+    var reaction3Percent = Math.round((reactions.reaction3 / total) * 100) || 0;
+    var reaction4Percent = Math.round((reactions.reaction4 / total) * 100) || 0;
+    
+    var html = '<p><strong>Total reactions:</strong> ' + total + '</p>';
+    
+    html += '<div class="stats-item">';
+    html += '<div>' + reactionLabels.reaction1 + ': ' + reactions.reaction1 + ' (' + reaction1Percent + '%)</div>';
+    html += '<div class="progress-bar"><div class="progress" style="width:' + reaction1Percent + '%"></div></div>';
+    html += '</div>';
+    
+    html += '<div class="stats-item">';
+    html += '<div>' + reactionLabels.reaction2 + ': ' + reactions.reaction2 + ' (' + reaction2Percent + '%)</div>';
+    html += '<div class="progress-bar"><div class="progress" style="width:' + reaction2Percent + '%"></div></div>';
+    html += '</div>';
+    
+    html += '<div class="stats-item">';
+    html += '<div>' + reactionLabels.reaction3 + ': ' + reactions.reaction3 + ' (' + reaction3Percent + '%)</div>';
+    html += '<div class="progress-bar"><div class="progress" style="width:' + reaction3Percent + '%"></div></div>';
+    html += '</div>';
+    
+    html += '<div class="stats-item">';
+    html += '<div>' + reactionLabels.reaction4 + ': ' + reactions.reaction4 + ' (' + reaction4Percent + '%)</div>';
+    html += '<div class="progress-bar"><div class="progress" style="width:' + reaction4Percent + '%"></div></div>';
+    html += '</div>';
+    
+    statsContent.innerHTML = html;
+}
+<\/script>`;
+
+        
         
