@@ -1058,5 +1058,478 @@ function updateStats() {
         updateStats();
     });
 </script>
+    <!-- Code Sandbox Widget -->
+<style>
+    #code-sandbox {
+        position: relative;
+        margin: 30px auto;
+        width: 100%;
+        max-width: 800px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    .sandbox-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: #4361ee;
+        color: white;
+    }
+    
+    .sandbox-title {
+        font-weight: bold;
+        font-size: 18px;
+    }
+    
+    .sandbox-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .sandbox-button {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+    
+    .sandbox-button:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    
+    .sandbox-button.primary {
+        background: white;
+        color: #4361ee;
+    }
+    
+    .sandbox-button.primary:hover {
+        background: rgba(255,255,255,0.9);
+    }
+    
+    .sandbox-container {
+        display: flex;
+        flex-direction: column;
+        height: 500px;
+    }
+    
+    @media (min-width: 768px) {
+        .sandbox-container {
+            flex-direction: row;
+        }
+    }
+    
+    .sandbox-editor {
+        flex: 1;
+        position: relative;
+        background: #1e1e1e;
+    }
+    
+    .sandbox-tabs {
+        display: flex;
+        background: #252525;
+    }
+    
+    .sandbox-tab {
+        padding: 10px 15px;
+        background: #252525;
+        color: #aaa;
+        cursor: pointer;
+        user-select: none;
+        font-size: 14px;
+    }
+    
+    .sandbox-tab.active {
+        background: #1e1e1e;
+        color: white;
+    }
+    
+    .sandbox-textarea {
+        width: 100%;
+        height: calc(100% - 38px);
+        border: none;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        padding: 15px;
+        resize: none;
+        outline: none;
+    }
+    
+    .sandbox-preview {
+        flex: 1;
+        background: white;
+        border-left: 1px solid #ddd;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    @media (max-width: 767px) {
+        .sandbox-preview {
+            height: 300px;
+            border-top: 1px solid #ddd;
+            border-left: none;
+        }
+    }
+    
+    .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .preview-title {
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    .preview-controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .preview-iframe {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+    
+    .console-output {
+        background: #f8f9fa;
+        border-top: 1px solid #ddd;
+        color: #333;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
+        padding: 10px 15px;
+        height: 100px;
+        overflow-y: auto;
+    }
+    
+    .console-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 15px;
+        background: #f1f2f3;
+        border-top: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .console-title {
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    .console-clear {
+        color: #4361ee;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    
+    .log-message {
+        margin: 5px 0;
+        overflow-wrap: break-word;
+    }
+    
+    .log-error {
+        color: #e53935;
+    }
+    
+    .log-warn {
+        color: #ef6c00;
+    }
+    
+    .log-info {
+        color: #2196f3;
+    }
+    
+    .resizer {
+        width: 100%;
+        height: 8px;
+        background: #f1f2f3;
+        cursor: row-resize;
+        border-top: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    @media (min-width: 768px) {
+        .resizer {
+            width: 8px;
+            height: 100%;
+            cursor: col-resize;
+        }
+    }
+</style>
+
+<div id="code-sandbox">
+    <div class="sandbox-header">
+        <div class="sandbox-title">Interactive Code Sandbox</div>
+        <div class="sandbox-controls">
+            <button class="sandbox-button" onclick="resetCode()">Reset</button>
+            <button class="sandbox-button primary" onclick="runCode()">Run ▶</button>
+        </div>
+    </div>
+    
+    <div class="sandbox-container">
+        <div class="sandbox-editor">
+            <div class="sandbox-tabs">
+                <div class="sandbox-tab active" data-tab="html" onclick="switchTab('html')">HTML</div>
+                <div class="sandbox-tab" data-tab="css" onclick="switchTab('css')">CSS</div>
+                <div class="sandbox-tab" data-tab="js" onclick="switchTab('js')">JavaScript</div>
+            </div>
+            <textarea id="html-editor" class="sandbox-textarea" placeholder="Write your HTML here...">&lt;!-- Add your HTML here --&gt;
+&lt;div class="container"&gt;
+  &lt;h1&gt;Hello, Sandbox!&lt;/h1&gt;
+  &lt;p&gt;Edit this code and click Run to see your changes.&lt;/p&gt;
+  &lt;button id="demo-button"&gt;Click me!&lt;/button&gt;
+&lt;/div&gt;</textarea>
+            <textarea id="css-editor" class="sandbox-textarea" style="display: none;" placeholder="Write your CSS here...">.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+h1 {
+  color: #4361ee;
+}
+
+button {
+  background: #4361ee;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+  font-size: 16px;
+}
+
+button:hover {
+  background: #3249c7;
+}</textarea>
+            <textarea id="js-editor" class="sandbox-textarea" style="display: none;" placeholder="Write your JavaScript here...">// Add your JavaScript here
+document.getElementById('demo-button').addEventListener('click', function() {
+  // Log something to the console
+  console.log('Button clicked!');
+  
+  // Change some content
+  this.textContent = 'Clicked!';
+  
+  // Create a new element
+  const message = document.createElement('p');
+  message.textContent = 'Great job! You ran the sandbox code.';
+  message.style.color = 'green';
+  document.querySelector('.container').appendChild(message);
+});</textarea>
+        </div>
+        
+        <div class="sandbox-preview">
+            <div class="preview-header">
+                <div class="preview-title">Preview</div>
+                <div class="preview-controls">
+                    <button class="sandbox-button" onclick="refreshPreview()">Refresh</button>
+                </div>
+            </div>
+            <iframe id="preview-iframe" class="preview-iframe" sandbox="allow-scripts"></iframe>
+            
+            <div class="console-header">
+                <div class="console-title">Console</div>
+                <div class="console-clear" onclick="clearConsole()">Clear</div>
+            </div>
+            <div id="console-output" class="console-output"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initial code values
+    const initialCode = {
+        html: document.getElementById('html-editor').value,
+        css: document.getElementById('css-editor').value,
+        js: document.getElementById('js-editor').value
+    };
+    
+    // Initialize the sandbox
+    document.addEventListener('DOMContentLoaded', function() {
+        runCode();
+    });
+    
+    // Switch between HTML, CSS, and JS tabs
+    function switchTab(tab) {
+        const tabs = document.querySelectorAll('.sandbox-tab');
+        const editors = document.querySelectorAll('.sandbox-textarea');
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        document.querySelector(`.sandbox-tab[data-tab="${tab}"]`).classList.add('active');
+        
+        editors.forEach(editor => editor.style.display = 'none');
+        document.getElementById(`${tab}-editor`).style.display = 'block';
+    }
+    
+    // Run the code and update the preview
+    function runCode() {
+        const html = document.getElementById('html-editor').value;
+        const css = document.getElementById('css-editor').value;
+        const js = document.getElementById('js-editor').value;
+        
+        updatePreview(html, css, js);
+        clearConsole();
+    }
+    
+    // Reset code to initial values
+    function resetCode() {
+        if (confirm('Reset all code to default?')) {
+            document.getElementById('html-editor').value = initialCode.html;
+            document.getElementById('css-editor').value = initialCode.css;
+            document.getElementById('js-editor').value = initialCode.js;
+            runCode();
+        }
+    }
+    
+    // Update the preview with new code
+    function updatePreview(html, css, js) {
+        const iframe = document.getElementById('preview-iframe');
+        const preview = iframe.contentDocument || iframe.contentWindow.document;
+        
+        // Create the content with a custom console
+        const content = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>${css}</style>
+            </head>
+            <body>
+                ${html}
+                <script>
+                    // Override console methods to relay them to parent
+                    const originalConsole = console;
+                    console = {
+                        log: function(...args) {
+                            originalConsole.log(...args);
+                            window.parent.postMessage({
+                                type: 'console',
+                                method: 'log',
+                                args: args
+                            }, '*');
+                        },
+                        error: function(...args) {
+                            originalConsole.error(...args);
+                            window.parent.postMessage({
+                                type: 'console',
+                                method: 'error',
+                                args: args
+                            }, '*');
+                        },
+                        warn: function(...args) {
+                            originalConsole.warn(...args);
+                            window.parent.postMessage({
+                                type: 'console',
+                                method: 'warn',
+                                args: args
+                            }, '*');
+                        },
+                        info: function(...args) {
+                            originalConsole.info(...args);
+                            window.parent.postMessage({
+                                type: 'console',
+                                method: 'info',
+                                args: args
+                            }, '*');
+                        }
+                    };
+                    
+                    // Catch unhandled errors
+                    window.addEventListener('error', function(event) {
+                        window.parent.postMessage({
+                            type: 'console',
+                            method: 'error',
+                            args: [event.message + ' (line: ' + event.lineno + ')']
+                        }, '*');
+                        return false;
+                    });
+                    
+                    // Handle promise rejections
+                    window.addEventListener('unhandledrejection', function(event) {
+                        window.parent.postMessage({
+                            type: 'console',
+                            method: 'error',
+                            args: ['Unhandled Promise Rejection: ' + event.reason]
+                        }, '*');
+                    });
+                    
+                    // Run the JS code
+                    try {
+                        ${js}
+                    } catch(error) {
+                        console.error(error.message);
+                    }
+                <\/script>
+            </body>
+            </html>
+        `;
+        
+        preview.open();
+        preview.write(content);
+        preview.close();
+    }
+    
+    // Listen for console messages from the iframe
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'console') {
+            const consoleOutput = document.getElementById('console-output');
+            const message = document.createElement('div');
+            message.className = `log-message log-${event.data.method}`;
+            
+            const formattedArgs = event.data.args.map(arg => {
+                if (typeof arg === 'object') {
+                    try {
+                        return JSON.stringify(arg);
+                    } catch (e) {
+                        return String(arg);
+                    }
+                }
+                return String(arg);
+            }).join(' ');
+            
+            message.textContent = formattedArgs;
+            consoleOutput.appendChild(message);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+    });
+    
+    // Clear the console output
+    function clearConsole() {
+        const consoleOutput = document.getElementById('console-output');
+        consoleOutput.innerHTML = '';
+    }
+    
+    // Refresh the preview without changing code
+    function refreshPreview() {
+        runCode();
+    }
+</script>
     <br>
  
